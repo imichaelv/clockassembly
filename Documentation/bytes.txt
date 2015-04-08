@@ -1,0 +1,23 @@
+0 = 01110111 = 0x77
+1 = 00100100 = 0x24
+2 = 01011101 = 0x5D
+3 = 01101101 = 0x6D
+4 = 00101110 = 0x2E
+5 = 01101011 = 0x6B
+6 = 01111011 = 0x7B
+7 = 00100101 = 0x25
+8 = 01111111 = 0x7F
+9 = 01101111 = 0x6F
+
+7 byte voor display:
+byte 0 en 1 = uren links, rechts
+byte 2 en 3 = minuten links, rechts
+byte 4 en 5 = seconden links, rechts
+byte 6 = opmaakt byte
+
+byte 6 inhoud:
+bit 0 = alarm idicator
+bit 1 = linker :
+bit 2 = rechter :
+bit 3 = alarm buzzer aan
+bit 4 t/m 7 = niet gebruikt
