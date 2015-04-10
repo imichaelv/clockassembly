@@ -63,17 +63,25 @@
 	ldi temp,0x00
 
 	
-	// Init UART
-	clr temp;
+	; set the baud rate, see datahseet p.167
+	; F_OSC = 11.0592 MHz & baud rate = 19200
+	; to do a 16-bit write, the high byte must be written before the low byte !
+	; for a 16-bit read, the low byte must be read before the high byte !
+	ldi temp, high(35)
 	out UBRRH, temp
-	ldi temp, 35 ; 19200 baud
+	ldi temp, low(35) ; 19200 baud
 	out UBRRL, temp
 	; set frame format : asynchronous, parity disabled, 8 data bits, 1 stop bit
 	ldi temp, (1<<URSEL)|(1<<UCSZ1)|(1<<UCSZ0)
 	out UCSRC, temp
 	; enable receiver & transmitter
 	ldi temp, (1 << RXEN) | (1 << TXEN)
-	out UCSRB, temp			
+	out UCSRB, temp
+
+	; init port
+	ser temp ; tmp = oxff
+	out DDRB, temp ; Port B is output port
+	out PORTB, temp ; LEDs uit	
 					
 										;
 	;******initiaize stack pointer******;	=============================
