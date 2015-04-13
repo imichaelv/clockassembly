@@ -144,6 +144,7 @@ loop:									;
 										;
 CLOCK_CYCLE:							;	=============================
 	in saveSR, SREG						;	= Checks on every clock		=
+	rcall swcheck
 	rcall checkEditLevel				;	= * What Edit level its on	=
 	cpi editLevel,4						;	= * Check if the clock is	=
 	brsh incSeconda
@@ -161,6 +162,28 @@ incSeconda:
 
 
 
+swcheck:
+	ldi temp, PINB
+	cpi temp,0x00
+	brne swpouched
+	ldi sw0Counter,0
+	ldi sw1Counter,0
+	ret
+
+	swpouched: 
+		cpi temp,0x01
+		breq sw0pouched
+		cpi temp,0x02
+		breq sw1pouched
+		ret
+		
+		sw0pouched:
+		inc sw0Counter
+		ret
+
+		sw1pouched:
+		inc sw1Counter
+		ret
 
 
 ;#######################################;

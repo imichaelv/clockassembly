@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.1.52  C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Program codes\AssemblerApplication4\AssemblerApplication4\AssemblerApplication4.asm Fri Apr 10 14:02:08 2015
+AVRASM ver. 2.1.52  C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Program codes\AssemblerApplication4\AssemblerApplication4\AssemblerApplication4.asm Mon Apr 13 11:36:21 2015
 
 [builtin](2): Including file 'C:\Program Files (x86)\Atmel\Atmel Studio 6.0\extensions\Atmel\AVRAssembler\2.1.51.64\AvrAssembler/Include\m32def.inc'
 C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Program codes\AssemblerApplication4\AssemblerApplication4\AssemblerApplication4.asm(8): Including file 'C:\Program Files (x86)\Atmel\Atmel Studio 6.0\extensions\Atmel\AVRAssembler\2.1.51.64\AvrAssembler/Include\m32def.inc'
@@ -1008,23 +1008,46 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  										;
                  CLOCK_CYCLE:							;	=============================
 000034 b6cf      	in saveSR, SREG						;	= Checks on every clock		=
-000035 d009      	rcall checkEditLevel				;	= * What Edit level its on	=
-000036 3054      	cpi editLevel,4						;	= * Check if the clock is	=
-000037 f420      	brsh incSeconda
-000038 940c 003a 	jmp CLOCK_CYCLE2
+000035 d00a      	rcall swcheck
+000036 d018      	rcall checkEditLevel				;	= * What Edit level its on	=
+000037 3054      	cpi editLevel,4						;	= * Check if the clock is	=
+000038 f420      	brsh incSeconda
+000039 940c 003b 	jmp CLOCK_CYCLE2
                  CLOCK_CYCLE2:										;	=	running.				=
-00003a becf      	out SREG, saveSR					;	=							=	
-00003b 9518      	reti								;	=============================
+00003b becf      	out SREG, saveSR					;	=							=	
+00003c 9518      	reti								;	=============================
                  
                  incSeconda:
-00003c d057      	rcall incSecond
-00003d 940c 003a 	jmp CLOCK_CYCLE2										;
+00003d d066      	rcall incSecond
+00003e 940c 003b 	jmp CLOCK_CYCLE2										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
                  ;=======================================;
                  
                  
                  
+                 swcheck:
+000040 e186      	ldi temp, PINB
+000041 3080      	cpi temp,0x00
+000042 f419      	brne swpouched
+000043 e060      	ldi sw0Counter,0
+000044 e070      	ldi sw1Counter,0
+000045 9508      	ret
+                 
+                 	swpouched: 
+000046 3081      		cpi temp,0x01
+000047 f019      		breq sw0pouched
+000048 3082      		cpi temp,0x02
+000049 f019      		breq sw1pouched
+00004a 9508      		ret
+                 		
+                 		sw0pouched:
+00004b 9563      		inc sw0Counter
+00004c 9508      		ret
+                 
+                 		sw1pouched:
+00004d 9573      		inc sw1Counter
+00004e 9508      		ret
                  
                  
                  ;#######################################;
@@ -1034,27 +1057,27 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;#######################################;
                  										;
                  checkEditLevel:							;	=============================
-00003f 3050      	cpi editLevel,0
-000040 f099      	breq startupa
-000041 3051      	cpi editLevel,1
-000042 f099      	breq setHoura
-000043 3052      	cpi editLevel,2
-000044 f099      	breq setMinutea
-000045 3053      	cpi editLevel,3
-000046 f099      	breq setSeconda
-000047 3054      	cpi editLevel,4
-000048 f099      	breq setAlarmStartupa
-000049 3055      	cpi editLevel,5
-00004a f099      	breq setAlarmHoura
-00004b 3056      	cpi editLevel,6
-00004c f099      	breq setAlarmMinutea
-00004d 3057      	cpi editLevel,7
-00004e f099      	breq playNoAlarma
-00004f 3058      	cpi editLevel,8
-000050 f099      	breq playYesAlarma
-000051 3059      	cpi editLevel,9
-000052 f099      	breq playNoAlarmAgaina
-000053 9508      	ret									;	=============================
+00004f 3050      	cpi editLevel,0
+000050 f099      	breq startupa
+000051 3051      	cpi editLevel,1
+000052 f099      	breq setHoura
+000053 3052      	cpi editLevel,2
+000054 f099      	breq setMinutea
+000055 3053      	cpi editLevel,3
+000056 f099      	breq setSeconda
+000057 3054      	cpi editLevel,4
+000058 f099      	breq setAlarmStartupa
+000059 3055      	cpi editLevel,5
+00005a f099      	breq setAlarmHoura
+00005b 3056      	cpi editLevel,6
+00005c f099      	breq setAlarmMinutea
+00005d 3057      	cpi editLevel,7
+00005e f099      	breq playNoAlarma
+00005f 3058      	cpi editLevel,8
+000060 f099      	breq playYesAlarma
+000061 3059      	cpi editLevel,9
+000062 f099      	breq playNoAlarmAgaina
+000063 9508      	ret									;	=============================
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1062,35 +1085,35 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  
                  
                  startupa:
-000054 d063      	rcall startup
-000055 9508      	ret
-                 setHoura:
-000056 d07d      	rcall setHour
-000057 9508      	ret
-                 setMinutea:
-000058 d095      	rcall setMinute
-000059 9508      	ret
-                 setSeconda:
-00005a d0ab      	rcall setSecond
-00005b 9508      	ret
-                 setAlarmStartupa:
-00005c d0c2      	rcall setAlarmStartup
-00005d 9508      	ret
-                 setAlarmHoura:
-00005e d0d8      	rcall setAlarmHour
-00005f 9508      	ret
-                 setAlarmMinutea:
-000060 d0f0      	rcall setAlarmMinute
-000061 9508      	ret
-                 playNoAlarma:
-000062 d106      	rcall playNoAlarm
-000063 9508      	ret
-                 playYesAlarma:
-000064 d10a      	rcall playYesAlarm
+000064 d063      	rcall startup
 000065 9508      	ret
-                 playNoAlarmAgaina:
-000066 dfff      	rcall playNoAlarmAgaina
+                 setHoura:
+000066 d07d      	rcall setHour
 000067 9508      	ret
+                 setMinutea:
+000068 d095      	rcall setMinute
+000069 9508      	ret
+                 setSeconda:
+00006a d0ab      	rcall setSecond
+00006b 9508      	ret
+                 setAlarmStartupa:
+00006c d0c2      	rcall setAlarmStartup
+00006d 9508      	ret
+                 setAlarmHoura:
+00006e d0d8      	rcall setAlarmHour
+00006f 9508      	ret
+                 setAlarmMinutea:
+000070 d0f0      	rcall setAlarmMinute
+000071 9508      	ret
+                 playNoAlarma:
+000072 d106      	rcall playNoAlarm
+000073 9508      	ret
+                 playYesAlarma:
+000074 d10a      	rcall playYesAlarm
+000075 9508      	ret
+                 playNoAlarmAgaina:
+000076 dfff      	rcall playNoAlarmAgaina
+000077 9508      	ret
                  
                  
                  
@@ -1104,15 +1127,15 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;=======================================;
                  ;///////////////////////////////////////;
                  checkIncEditLevel:						;
-000068 3076      	cpi sw1Counter,6					;
-000069 f438      	brsh incEditLevel					;
-00006a 3070      	cpi sw1Counter,0x00					;
-00006b f061      	breq incSW1Counter					;
-00006c f469      	brne resetSW1Counter				;
-00006d 3062      	cpi sw0Counter,2					;
-00006e f428      	brsh incSW0Counter					;
-00006f f031      	breq resetSW0Counter				;
-000070 9508      	ret									;
+000078 3076      	cpi sw1Counter,6					;
+000079 f438      	brsh incEditLevel					;
+00007a 3070      	cpi sw1Counter,0x00					;
+00007b f061      	breq incSW1Counter					;
+00007c f469      	brne resetSW1Counter				;
+00007d 3062      	cpi sw0Counter,2					;
+00007e f428      	brsh incSW0Counter					;
+00007f f031      	breq resetSW0Counter				;
+000080 9508      	ret									;
                  ;=======================================;
                  ;--------------END LABEL----------------;
                  ;=======================================;
@@ -1125,9 +1148,9 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;=======================================;
                  ;///////////////////////////////////////;
                  incEditLevel:							;
-000071 9553      	inc editLevel						;
-000072 2777      	clr sw1Counter						;
-000073 9508      	ret									;
+000081 9553      	inc editLevel						;
+000082 2777      	clr sw1Counter						;
+000083 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1143,8 +1166,8 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;=======================================;
                  ;///////////////////////////////////////;
                  incSW0Counter:							;
-000074 9563      	inc sw0Counter						;
-000075 9508      	ret									;
+000084 9563      	inc sw0Counter						;
+000085 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1160,8 +1183,8 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;=======================================;
                  ;///////////////////////////////////////;
                  resetSW0Counter:						;
-000076 2766      	clr sw0Counter						;
-000077 9508      	ret									;
+000086 2766      	clr sw0Counter						;
+000087 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1176,8 +1199,8 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;=======================================;
                  ;///////////////////////////////////////;
                  incSW1Counter:							;
-000078 9573      	inc sw1Counter						;
-000079 9508      	ret									;
+000088 9573      	inc sw1Counter						;
+000089 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1193,8 +1216,8 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;=======================================;
                  ;///////////////////////////////////////;
                  resetSW1Counter:						;
-00007a 2777      	clr sw1Counter						;
-00007b 9508      	ret									;
+00008a 2777      	clr sw1Counter						;
+00008b 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1209,17 +1232,17 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;=======================================;
                  ;///////////////////////////////////////;
                  checkSame:								;
-00007c 1703      	cp hour,hourAlarm
-00007d f009      	breq checkSame2
-00007e 9508      	ret									;
+00008c 1703      	cp hour,hourAlarm
+00008d f009      	breq checkSame2
+00008e 9508      	ret									;
                  checkSame2:
-00007f 1714      	cp minute, minuteAlarm
-000080 f009      	breq checkSame3
-000081 9508      	ret
+00008f 1714      	cp minute, minuteAlarm
+000090 f009      	breq checkSame3
+000091 9508      	ret
                  
                  checkSame3:
-000082 e081      	ldi temp,1
-000083 9508      	ret										;
+000092 e081      	ldi temp,1
+000093 9508      	ret										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
                  ;=======================================;
@@ -1238,21 +1261,21 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;///////////////////////////////////////;
                  ;***************************************;
                  incSecondTens:
-000084 9523      	inc second
-000085 9523      	inc second
-000086 9523      	inc second
-000087 9523      	inc second
-000088 9523      	inc second
-000089 9523      	inc second
-00008a 9523      	inc second
-00008b 9523      	inc second
-00008c 9523      	inc second
-00008d 9523      	inc second
-00008e 9523      	inc second
+000094 9523      	inc second
+000095 9523      	inc second
+000096 9523      	inc second
+000097 9523      	inc second
+000098 9523      	inc second
+000099 9523      	inc second
+00009a 9523      	inc second
+00009b 9523      	inc second
+00009c 9523      	inc second
+00009d 9523      	inc second
+00009e 9523      	inc second
                  
-00008f 332d      	cpi second,61
-000090 f408      	brsh setZeroSecond 
-000091 9508      	ret									;
+00009f 332d      	cpi second,61
+0000a0 f408      	brsh setZeroSecond 
+0000a1 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1265,8 +1288,8 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;///////////////////////////////////////;
                  ;***************************************;
                  setZeroSecond:
-000092 e021      	ldi second,1
-000093 9508      	ret	
+0000a2 e021      	ldi second,1
+0000a3 9508      	ret	
                  ;=======================================;
                  ;--------------END LABEL----------------;
                  ;=======================================;s
@@ -1278,10 +1301,10 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;///////////////////////////////////////;
                  ;***************************************;
                  incSecond:
-000094 9523      	inc second
-000095 332d      	cpi second,61
-000096 f428      	brsh incMinuteNorm 
-000097 9508      	ret									;
+0000a4 9523      	inc second
+0000a5 332d      	cpi second,61
+0000a6 f428      	brsh incMinuteNorm 
+0000a7 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1298,10 +1321,10 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;///////////////////////////////////////;
                  ;***************************************;
                  incMinute:
-000098 9513      	inc minute
-000099 331d      	cpi minute,61
-00009a f480      	brsh incHourNorm 
-00009b 9508      	ret									;
+0000a8 9513      	inc minute
+0000a9 331d      	cpi minute,61
+0000aa f480      	brsh incHourNorm 
+0000ab 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1314,11 +1337,11 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;///////////////////////////////////////;
                  ;***************************************;
                  incMinuteNorm:
-00009c 9513      	inc minute
-00009d e021      	ldi second,1
-00009e 331d      	cpi minute,61
-00009f f458      	brsh incHourNorm 
-0000a0 9508      	ret									;
+0000ac 9513      	inc minute
+0000ad e021      	ldi second,1
+0000ae 331d      	cpi minute,61
+0000af f458      	brsh incHourNorm 
+0000b0 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1331,13 +1354,13 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;///////////////////////////////////////;
                  ;***************************************;
                  incMinuteAlarm:
-0000a1 9543      	inc minuteAlarm
-0000a2 334d      	cpi minuteAlarm,61
-0000a3 f408      	brsh incHourAlarmNorm 
-0000a4 9508      	ret									;
+0000b1 9543      	inc minuteAlarm
+0000b2 334d      	cpi minuteAlarm,61
+0000b3 f408      	brsh incHourAlarmNorm 
+0000b4 9508      	ret									;
                  incHourAlarmNorm:
-0000a5 e041      	ldi minuteAlarm,1
-0000a6 9508      	ret									;
+0000b5 e041      	ldi minuteAlarm,1
+0000b6 9508      	ret									;
                  ;=======================================;
                  ;--------------END LABEL----------------;
                  ;=======================================;
@@ -1352,10 +1375,10 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;///////////////////////////////////////;
                  ;***************************************;
                  incHour:
-0000a7 9503      	inc hour
-0000a8 3129      	cpi second,25
-0000a9 f450      	brsh incDayNorm 
-0000aa 9508      	ret									;
+0000b7 9503      	inc hour
+0000b8 3129      	cpi second,25
+0000b9 f450      	brsh incDayNorm 
+0000ba 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1368,11 +1391,11 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;///////////////////////////////////////;
                  ;***************************************;
                  incHourNorm:
-0000ab 9503      	inc hour
-0000ac e011      	ldi minute,1
-0000ad 3109      	cpi hour,25
-0000ae f428      	brsh incDayNorm 
-0000af 9508      	ret									;
+0000bb 9503      	inc hour
+0000bc e011      	ldi minute,1
+0000bd 3109      	cpi hour,25
+0000be f428      	brsh incDayNorm 
+0000bf 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1385,10 +1408,10 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;///////////////////////////////////////;
                  ;***************************************;
                  incHourAlarm:
-0000b0 9533      	inc hourAlarm
-0000b1 3109      	cpi hour,25
-0000b2 f418      	brsh incDayAlarmNorm 
-0000b3 9508      	ret									;
+0000c0 9533      	inc hourAlarm
+0000c1 3109      	cpi hour,25
+0000c2 f418      	brsh incDayAlarmNorm 
+0000c3 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1402,11 +1425,11 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;///////////////////////////////////////;
                  ;***************************************;
                  incDayNorm:
-0000b4 e001      	ldi hour,1
-0000b5 9508      	ret
+0000c4 e001      	ldi hour,1
+0000c5 9508      	ret
                  incDayAlarmNorm:
-0000b6 e031      	ldi hourAlarm,1
-0000b7 9508      	ret									;
+0000c6 e031      	ldi hourAlarm,1
+0000c7 9508      	ret									;
                  										;
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1434,39 +1457,39 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;##############################################################################;
                  										;
                  startup:								;
-0000b8 d012      	rcall startup1
-0000b9 d014      	rcall startup2
-0000ba d016      	rcall startup3
-0000bb d107      	rcall displayNoAlarm
-0000bc 9500      	com hour							;
-0000bd 9510      	com minute							;
-0000be 9520      	com second							;
-0000bf dfa8      	rcall checkIncEditLevel
-0000c0 9508      	ret
+0000c8 d012      	rcall startup1
+0000c9 d014      	rcall startup2
+0000ca d016      	rcall startup3
+0000cb d107      	rcall displayNoAlarm
+0000cc 9500      	com hour							;
+0000cd 9510      	com minute							;
+0000ce 9520      	com second							;
+0000cf dfa8      	rcall checkIncEditLevel
+0000d0 9508      	ret
                  	
                  displayNull2:
-0000c1 940e 018d 	call displayNull
-0000c3 940e 018d 	call displayNull
-0000c5 9508      	ret
+0000d1 940e 019d 	call displayNull
+0000d3 940e 019d 	call displayNull
+0000d5 9508      	ret
                  displayZero2:
-0000c6 940e 0190 	call displayZero
-0000c8 940e 0190 	call displayZero
-0000ca 9508      	ret	
+0000d6 940e 01a0 	call displayZero
+0000d8 940e 01a0 	call displayZero
+0000da 9508      	ret	
                  	
                  	startup1:
-0000cb 3f0f      		cpi hour,0xff						;
-0000cc f3a1      		breq displayNull2					;
-0000cd f7c1      		brne displayZero2
+0000db 3f0f      		cpi hour,0xff						;
+0000dc f3a1      		breq displayNull2					;
+0000dd f7c1      		brne displayZero2
                  
                  	startup2:
-0000ce 3f1f      		cpi minute,0xff						;
-0000cf f389      		breq displayNull2					;
-0000d0 f7a9      		brne displayZero2					;
+0000de 3f1f      		cpi minute,0xff						;
+0000df f389      		breq displayNull2					;
+0000e0 f7a9      		brne displayZero2					;
                  	
                  	startup3:
-0000d1 3f2f      		cpi second, 0xff					;
-0000d2 f371      		breq displayNull2
-0000d3 f791      		brne displayZero2					;
+0000e1 3f2f      		cpi second, 0xff					;
+0000e2 f371      		breq displayNull2
+0000e3 f791      		brne displayZero2					;
                  ;=======================================;
                  ;--------------END LABEL----------------;
                  ;=======================================;
@@ -1482,37 +1505,37 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;#######################################;
                  										;
                  setHour:
-0000d4 d00b      	rcall setHour1
-0000d5 dff0      	rcall displayZero2					;
-0000d6 dfef      	rcall displayZero2					;
-0000d7 d0eb      	rcall displayNoAlarm				;
+0000e4 d00b      	rcall setHour1
+0000e5 dff0      	rcall displayZero2					;
+0000e6 dfef      	rcall displayZero2					;
+0000e7 d0eb      	rcall displayNoAlarm				;
                  
-0000d8 940e 0068 	call checkIncEditLevel				;
-0000da 3061      	cpi	sw0Counter,1					;
-0000db f410      	brsh incHour2						;
-0000dc df99      	rcall resetSW0Counter				;
-0000dd 9508      	ret									;
+0000e8 940e 0078 	call checkIncEditLevel				;
+0000ea 3061      	cpi	sw0Counter,1					;
+0000eb f410      	brsh incHour2						;
+0000ec df99      	rcall resetSW0Counter				;
+0000ed 9508      	ret									;
                  	 incHour2:
-0000de dfc8      		rcall incHour
-0000df 9508      		ret
+0000ee dfc8      		rcall incHour
+0000ef 9508      		ret
                  
                  	setHour1:
                  		
-0000e0 3f0f      		cpi hour,0xff					;
-0000e1 f021      		breq displayNullHour2inv		;
-0000e2 3000      		cpi hour,0x00					;
-0000e3 f031      		breq displayZeroHour2inv		;					
-0000e4 d0ee      		rcall displayHour				;
-0000e5 9508      		ret
+0000f0 3f0f      		cpi hour,0xff					;
+0000f1 f021      		breq displayNullHour2inv		;
+0000f2 3000      		cpi hour,0x00					;
+0000f3 f031      		breq displayZeroHour2inv		;					
+0000f4 d0ee      		rcall displayHour				;
+0000f5 9508      		ret
                  
                  	displayNullHour2inv:
-0000e6 9500      		com hour
-0000e7 940e 00c6 		call displayZero2
-0000e9 9508      		ret
+0000f6 9500      		com hour
+0000f7 940e 00d6 		call displayZero2
+0000f9 9508      		ret
                  	displayZeroHour2inv:
-0000ea 9500      		com hour
-0000eb 940e 00c6 		call displayZero2
-0000ed 9508      		ret
+0000fa 9500      		com hour
+0000fb 940e 00d6 		call displayZero2
+0000fd 9508      		ret
                  
                  	
                  ;=======================================;
@@ -1530,36 +1553,36 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;#######################################;
                  										;
                  setMinute:								;
-0000ee d0e4      	rcall displayHour					;
-0000ef d007      	rcall setMinute1
-0000f0 dfd5      	rcall displayZero2
-0000f1 d0d1      	rcall displayNoAlarm
-0000f2 df75      	rcall checkIncEditLevel
+0000fe d0e4      	rcall displayHour					;
+0000ff d007      	rcall setMinute1
+000100 dfd5      	rcall displayZero2
+000101 d0d1      	rcall displayNoAlarm
+000102 df75      	rcall checkIncEditLevel
                  
-0000f3 3061      	cpi	sw0Counter,1					;
-0000f4 f438      	brsh incMinute2						;
-0000f5 df80      	rcall resetSW0Counter				;
-0000f6 9508      	ret									;
+000103 3061      	cpi	sw0Counter,1					;
+000104 f438      	brsh incMinute2						;
+000105 df80      	rcall resetSW0Counter				;
+000106 9508      	ret									;
                  
                  	setMinute1:
-0000f7 3f1f      		cpi minute,0xff					;
-0000f8 f029      		breq displayNullMinute2inv				;
-0000f9 3010      		cpi minute,0x00					;
-0000fa f039      		breq displayZeroMinute2inv					;
-0000fb d0da      		rcall displayMinute				;
+000107 3f1f      		cpi minute,0xff					;
+000108 f029      		breq displayNullMinute2inv				;
+000109 3010      		cpi minute,0x00					;
+00010a f039      		breq displayZeroMinute2inv					;
+00010b d0da      		rcall displayMinute				;
                  
                  	incMinute2:
-0000fc df9b      		rcall incMinute
-0000fd 9508      		ret
+00010c df9b      		rcall incMinute
+00010d 9508      		ret
                  	
                  	displayNullMinute2inv:
-0000fe 9510      		com minute
-0000ff 940e 00c6 		call displayZero2
-000101 9508      		ret
+00010e 9510      		com minute
+00010f 940e 00d6 		call displayZero2
+000111 9508      		ret
                  	displayZeroMinute2inv:
-000102 9510      		com minute
-000103 940e 00c6 		call displayZero2
-000105 9508      		ret
+000112 9510      		com minute
+000113 940e 00d6 		call displayZero2
+000115 9508      		ret
                  	
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1576,38 +1599,38 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;#######################################;
                  										;
                  setSecond:								;
-000106 d0cc      	rcall displayHour					;
-000107 d0ce      	rcall displayMinute
-000108 d006      	rcall setSecond1
-000109 d0b9      	rcall displayNoAlarm
+000116 d0cc      	rcall displayHour					;
+000117 d0ce      	rcall displayMinute
+000118 d006      	rcall setSecond1
+000119 d0b9      	rcall displayNoAlarm
                  
-00010a df5d      	rcall checkIncEditLevel
-00010b 3061      	cpi	sw0Counter,1					;
-00010c f440      	brsh incSecondTens2					;
-00010d df68      	rcall resetSW0Counter				;
-00010e 9508      	ret									;
+00011a df5d      	rcall checkIncEditLevel
+00011b 3061      	cpi	sw0Counter,1					;
+00011c f440      	brsh incSecondTens2					;
+00011d df68      	rcall resetSW0Counter				;
+00011e 9508      	ret									;
                  
                  	setSecond1:
-00010f 3f2f      		cpi second,0xff						;
-000110 f031      		breq displayNullSecond2inv		;
-000111 3020      		cpi second,0x00						;
-000112 f041      		breq displayZeroSecond2inv			;
-000113 d0c5      		rcall displaySecond					;
-000114 9508      		ret
+00011f 3f2f      		cpi second,0xff						;
+000120 f031      		breq displayNullSecond2inv		;
+000121 3020      		cpi second,0x00						;
+000122 f041      		breq displayZeroSecond2inv			;
+000123 d0c5      		rcall displaySecond					;
+000124 9508      		ret
                  
                  	
                  	incSecondTens2:
-000115 df6e      		rcall incSecondTens
-000116 9508      		ret
+000125 df6e      		rcall incSecondTens
+000126 9508      		ret
                  
                  		displayNullSecond2inv:
-000117 9520      		com second
-000118 940e 00c6 		call displayZero2
-00011a 9508      		ret
+000127 9520      		com second
+000128 940e 00d6 		call displayZero2
+00012a 9508      		ret
                  	displayZeroSecond2inv:
-00011b 9520      		com second
-00011c 940e 00c6 		call displayZero2
-00011e 9508      		ret
+00012b 9520      		com second
+00012c 940e 00d6 		call displayZero2
+00012e 9508      		ret
                  ;=======================================;
                  ;--------------END LABEL----------------;
                  ;=======================================;
@@ -1623,34 +1646,34 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;#######################################;
                  										;
                  setAlarmStartup:								;
-00011f d007      	rcall alarmSetup1
-000120 d009      	rcall alarmSetup2
-000121 df9f      	rcall displayNull2
-000122 d09e      	rcall displayYesAlarm
-000123 9530      	com hourAlarm							;
-000124 9540      	com minuteAlarm							;
-000125 df42      	rcall checkIncEditLevel
-000126 9508      	ret
+00012f d007      	rcall alarmSetup1
+000130 d009      	rcall alarmSetup2
+000131 df9f      	rcall displayNull2
+000132 d09e      	rcall displayYesAlarm
+000133 9530      	com hourAlarm							;
+000134 9540      	com minuteAlarm							;
+000135 df42      	rcall checkIncEditLevel
+000136 9508      	ret
                  	
                  	
                  	alarmSetup1:
-000127 3f3f      		cpi hourAlarm,0xff						;
-000128 f021      		breq displayNull3					;
-000129 f441      		brne displayZero3
+000137 3f3f      		cpi hourAlarm,0xff						;
+000138 f021      		breq displayNull3					;
+000139 f441      		brne displayZero3
                  
                  	Alarmsetup2:
-00012a 3f4f      		cpi minuteAlarm,0xff						;
-00012b f009      		breq displayNull3					;
-00012c f429      		brne displayZero3					;
+00013a 3f4f      		cpi minuteAlarm,0xff						;
+00013b f009      		breq displayNull3					;
+00013c f429      		brne displayZero3					;
                  
                  		displayNull3:
-00012d 940e 018d 			call displayNull
-00012f 940e 018d 			call displayNull
-000131 9508      			ret
+00013d 940e 019d 			call displayNull
+00013f 940e 019d 			call displayNull
+000141 9508      			ret
                  		displayZero3:
-000132 940e 0190 			call displayZero
-000134 940e 0190 			call displayZero
-000136 9508      			ret	
+000142 940e 01a0 			call displayZero
+000144 940e 01a0 			call displayZero
+000146 9508      			ret	
                  	
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1667,37 +1690,37 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;#######################################;
                  										;
                  setAlarmHour:
-000137 d00b      	rcall setAlarmHour1
-000138 df8d      	rcall displayZero2					;
-000139 df87      	rcall displayNull2					;
-00013a d086      	rcall displayYesAlarm				;
+000147 d00b      	rcall setAlarmHour1
+000148 df8d      	rcall displayZero2					;
+000149 df87      	rcall displayNull2					;
+00014a d086      	rcall displayYesAlarm				;
                  
-00013b 940e 0068 	call checkIncEditLevel				;
-00013d 3061      	cpi	sw0Counter,1					;
-00013e f410      	brsh incHourAlarm2						;
-00013f df36      	rcall resetSW0Counter				;
-000140 9508      	ret									;
+00014b 940e 0078 	call checkIncEditLevel				;
+00014d 3061      	cpi	sw0Counter,1					;
+00014e f410      	brsh incHourAlarm2						;
+00014f df36      	rcall resetSW0Counter				;
+000150 9508      	ret									;
                  	 incHourAlarm2:
-000141 df6e      		rcall incHourAlarm
-000142 9508      		ret
+000151 df6e      		rcall incHourAlarm
+000152 9508      		ret
                  
                  	setAlarmHour1:
                  		
-000143 3f3f      		cpi hourAlarm,0xff					;
-000144 f021      		breq displayNullHourAlarm2inv		;
-000145 3030      		cpi hourAlarm,0x00					;
-000146 f031      		breq displayZeroHourAlarm2inv		;					
-000147 d094      		rcall displayHourAlarm				;
-000148 9508      		ret
+000153 3f3f      		cpi hourAlarm,0xff					;
+000154 f021      		breq displayNullHourAlarm2inv		;
+000155 3030      		cpi hourAlarm,0x00					;
+000156 f031      		breq displayZeroHourAlarm2inv		;					
+000157 d094      		rcall displayHourAlarm				;
+000158 9508      		ret
                  
                  	displayNullHourAlarm2inv:
-000149 9530      		com hourAlarm
-00014a 940e 00c6 		call displayZero2
-00014c 9508      		ret
+000159 9530      		com hourAlarm
+00015a 940e 00d6 		call displayZero2
+00015c 9508      		ret
                  	displayZeroHourAlarm2inv:
-00014d 9530      		com hourAlarm
-00014e 940e 00c6 		call displayZero2
-000150 9508      		ret
+00015d 9530      		com hourAlarm
+00015e 940e 00d6 		call displayZero2
+000160 9508      		ret
                  
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1714,36 +1737,36 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;#######################################;
                  										;
                  setAlarmMinute:								;
-000151 d08a      	rcall displayHourAlarm					;
-000152 d007      	rcall setMinuteAlarm1
-000153 dfde      	rcall displayZero3
-000154 d06c      	rcall displayYesAlarm
-000155 df12      	rcall checkIncEditLevel
+000161 d08a      	rcall displayHourAlarm					;
+000162 d007      	rcall setMinuteAlarm1
+000163 dfde      	rcall displayZero3
+000164 d06c      	rcall displayYesAlarm
+000165 df12      	rcall checkIncEditLevel
                  
-000156 3061      	cpi	sw0Counter,1					;
-000157 f438      	brsh incMinuteAlarm2						;
-000158 df1d      	rcall resetSW0Counter				;
-000159 9508      	ret									;
+000166 3061      	cpi	sw0Counter,1					;
+000167 f438      	brsh incMinuteAlarm2						;
+000168 df1d      	rcall resetSW0Counter				;
+000169 9508      	ret									;
                  
                  	setMinuteAlarm1:
-00015a 3f4f      		cpi minuteAlarm,0xff					;
-00015b f029      		breq displayNullMinuteAlarm2inv				;
-00015c 3040      		cpi minuteAlarm,0x00					;
-00015d f039      		breq displayZeroMinuteAlarm2inv					;
-00015e d080      		rcall displayMinuteAlarm				;
+00016a 3f4f      		cpi minuteAlarm,0xff					;
+00016b f029      		breq displayNullMinuteAlarm2inv				;
+00016c 3040      		cpi minuteAlarm,0x00					;
+00016d f039      		breq displayZeroMinuteAlarm2inv					;
+00016e d080      		rcall displayMinuteAlarm				;
                  
                  	incMinuteAlarm2:
-00015f df41      		rcall incMinuteAlarm
-000160 9508      		ret
+00016f df41      		rcall incMinuteAlarm
+000170 9508      		ret
                  	
                  	displayNullMinuteAlarm2inv:
-000161 9540      		com minuteAlarm
-000162 940e 00c6 		call displayZero2
-000164 9508      		ret
+000171 9540      		com minuteAlarm
+000172 940e 00d6 		call displayZero2
+000174 9508      		ret
                  	displayZeroMinuteAlarm2inv:
-000165 9540      		com minuteAlarm
-000166 940e 00c6 		call displayZero2
-000168 9508      		ret
+000175 9540      		com minuteAlarm
+000176 940e 00d6 		call displayZero2
+000178 9508      		ret
                  	
                  ;=======================================;
                  ;--------------END LABEL----------------;
@@ -1761,12 +1784,12 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;#######################################;
                  										;
                  playNoAlarm:							;
-000169 cefe      	rjmp checkIncEditLevel				;
-00016a 3061      	cpi	sw0Counter,1					;
-00016b f4e0      	brsh showAlarm						;
-00016c f4b9      	brne showTime						;
-00016d c055      	rjmp displayNoAlarm					;
-00016e 9508      	ret									;
+000179 cefe      	rjmp checkIncEditLevel				;
+00017a 3061      	cpi	sw0Counter,1					;
+00017b f4e0      	brsh showAlarm						;
+00017c f4b9      	brne showTime						;
+00017d c055      	rjmp displayNoAlarm					;
+00017e 9508      	ret									;
                  ;=======================================;
                  ;--------------END LABEL----------------;
                  ;=======================================;
@@ -1782,29 +1805,29 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;#######################################;
                  										;
                  playYesAlarm:							;
-00016f def8      	rcall checkIncEditLevel				;
-000170 d002      	rcall checkDisplay
-000171 d004      	rcall checkAlarmSound
-000172 9508      	ret
+00017f def8      	rcall checkIncEditLevel				;
+000180 d002      	rcall checkDisplay
+000181 d004      	rcall checkAlarmSound
+000182 9508      	ret
                  
                  	checkDisplay:
-000173 3061      	cpi	sw0Counter,1					;
-000174 f498      	brsh showAlarm						;
-000175 f471      	brne showTime
+000183 3061      	cpi	sw0Counter,1					;
+000184 f498      	brsh showAlarm						;
+000185 f471      	brne showTime
                  	
                  	checkAlarmSound:			;				;
-000176 e080      	ldi temp,0x00						;
-000177 940e 007c 	call checkSame
-000179 3080      	cpi temp,0x00
-00017a f009      	breq displayYesAlarm2
-00017b f419      	brne displayBuzzer2
+000186 e080      	ldi temp,0x00						;
+000187 940e 008c 	call checkSame
+000189 3080      	cpi temp,0x00
+00018a f009      	breq displayYesAlarm2
+00018b f419      	brne displayBuzzer2
                  							;
                  displayYesAlarm2:
-00017c 940e 01c1 	call displayYesAlarm
-00017e 9508      	ret
+00018c 940e 01d1 	call displayYesAlarm
+00018e 9508      	ret
                  displayBuzzer2:
-00017f 940e 01c7 	call displayBuzzer
-000181 9508      	ret
+00018f 940e 01d7 	call displayBuzzer
+000191 9508      	ret
                  ;=======================================;
                  ;--------------END LABEL----------------;
                  ;=======================================;
@@ -1816,8 +1839,8 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;=======================================;
                  ;#######################################;
                  playNoAlarmAgain:
-000182 e057      	ldi editLevel,7
-000183 9508      	ret
+000192 e057      	ldi editLevel,7
+000193 9508      	ret
                  ;=======================================;
                  ;--------------END LABEL----------------;
                  ;=======================================;
@@ -1831,10 +1854,10 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;=======================================;
                  ;#######################################;
                  showTime:								;
-000184 d04e      	rcall displayHour					;
-000185 d050      	rcall displayMinute					;
-000186 d052      	rcall displaySecond					;
-000187 9508      	ret									;
+000194 d04e      	rcall displayHour					;
+000195 d050      	rcall displayMinute					;
+000196 d052      	rcall displaySecond					;
+000197 9508      	ret									;
                  ;=======================================;
                  ;--------------END LABEL----------------;
                  ;=======================================;
@@ -1849,11 +1872,11 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  ;=======================================;
                  ;#######################################;
                  showAlarm:								;
-000188 d053      	rcall displayHourAlarm				;
-000189 d055      	rcall displayMinuteAlarm				;
-00018a d002      	rcall displayNull					;
-00018b d001      	rcall displayNull					;
-00018c 9508      	ret									;
+000198 d053      	rcall displayHourAlarm				;
+000199 d055      	rcall displayMinuteAlarm				;
+00019a d002      	rcall displayNull					;
+00019b d001      	rcall displayNull					;
+00019c 9508      	ret									;
                  ;=======================================;
                  ;--------------END LABEL----------------;
                  ;=======================================;
@@ -1863,139 +1886,139 @@ C:\Users\Michaël\SkyDrive\HanzeHogeschool\Thema 1.3\PROJECT{}\clockassembly\Prog
                  
                  
                  displayNull:
-00018d e080      	ldi temp, 0x00
-00018e bb82      	out PORTD, temp
-00018f 9508      	ret
+00019d e080      	ldi temp, 0x00
+00019e bb82      	out PORTD, temp
+00019f 9508      	ret
                  displayZero:
-000190 e787      	ldi temp, 0x77
-000191 bb82      	out PORTD, temp
-000192 9508      	ret
+0001a0 e787      	ldi temp, 0x77
+0001a1 bb82      	out PORTD, temp
+0001a2 9508      	ret
                  displayOne:
-000193 e284      	ldi temp, 0x24
-000194 bb82      	out PORTD, temp
-000195 9508      	ret
+0001a3 e284      	ldi temp, 0x24
+0001a4 bb82      	out PORTD, temp
+0001a5 9508      	ret
                  displayTwo:
-000196 e58d      	ldi temp, 0x5D
-000197 bb82      	out PORTD, temp
-000198 9508      	ret
+0001a6 e58d      	ldi temp, 0x5D
+0001a7 bb82      	out PORTD, temp
+0001a8 9508      	ret
                  displayThree:
-000199 e68d      	ldi temp, 0x6D
-00019a bb82      	out PORTD, temp
-00019b 9508      	ret
+0001a9 e68d      	ldi temp, 0x6D
+0001aa bb82      	out PORTD, temp
+0001ab 9508      	ret
                  displayFour:
-00019c e28e      	ldi temp, 0x2E
-00019d bb82      	out PORTD, temp
-00019e 9508      	ret
+0001ac e28e      	ldi temp, 0x2E
+0001ad bb82      	out PORTD, temp
+0001ae 9508      	ret
                  displayFive:
-00019f e68b      	ldi temp, 0x6B
-0001a0 bb82      	out PORTD, temp
-0001a1 9508      	ret
+0001af e68b      	ldi temp, 0x6B
+0001b0 bb82      	out PORTD, temp
+0001b1 9508      	ret
                  displaySix:
-0001a2 e78b      	ldi temp, 0x7B
-0001a3 bb82      	out PORTD, temp
-0001a4 9508      	ret
+0001b2 e78b      	ldi temp, 0x7B
+0001b3 bb82      	out PORTD, temp
+0001b4 9508      	ret
                  displaySeven:
-0001a5 e285      	ldi temp, 0x25
-0001a6 bb82      	out PORTD, temp
-0001a7 9508      	ret
+0001b5 e285      	ldi temp, 0x25
+0001b6 bb82      	out PORTD, temp
+0001b7 9508      	ret
                  displayEight:
-0001a8 e78f      	ldi temp, 0x7F
-0001a9 bb82      	out PORTD, temp
-0001aa 9508      	ret
+0001b8 e78f      	ldi temp, 0x7F
+0001b9 bb82      	out PORTD, temp
+0001ba 9508      	ret
                  displayNine:
-0001ab e68f      	ldi temp, 0x6F
-0001ac bb82      	out PORTD, temp
-0001ad 9508      	ret
+0001bb e68f      	ldi temp, 0x6F
+0001bc bb82      	out PORTD, temp
+0001bd 9508      	ret
                  
                  displayNumber:
-0001ae 358d      	cpi temp, 0x5D
-0001af f319      	breq displayOne
+0001be 358d      	cpi temp, 0x5D
+0001bf f319      	breq displayOne
                  
-0001b0 368d      	cpi temp, 0x6D
-0001b1 f321      	breq displayTwo
+0001c0 368d      	cpi temp, 0x6D
+0001c1 f321      	breq displayTwo
                  
-0001b2 328e      	cpi temp, 0x2E
-0001b3 f329      	breq displayThree
+0001c2 328e      	cpi temp, 0x2E
+0001c3 f329      	breq displayThree
                  
-0001b4 368b      	cpi temp, 0x6B
-0001b5 f331      	breq displayFour
+0001c4 368b      	cpi temp, 0x6B
+0001c5 f331      	breq displayFour
                  
-0001b6 378b      	cpi temp, 0x7B
-0001b7 f339      	breq displayFive
+0001c6 378b      	cpi temp, 0x7B
+0001c7 f339      	breq displayFive
                  
-0001b8 3285      	cpi temp, 0x25
-0001b9 f341      	breq displaySix
+0001c8 3285      	cpi temp, 0x25
+0001c9 f341      	breq displaySix
                  
-0001ba 378f      	cpi temp, 0x7F
-0001bb f349      	breq displaySeven
+0001ca 378f      	cpi temp, 0x7F
+0001cb f349      	breq displaySeven
                  
-0001bc 368f      	cpi temp, 0x6F
-0001bd f351      	breq displayEight
+0001cc 368f      	cpi temp, 0x6F
+0001cd f351      	breq displayEight
                  
-0001be 308a      	cpi temp, 0x0A
-0001bf f359      	breq displayNine
+0001ce 308a      	cpi temp, 0x0A
+0001cf f359      	breq displayNine
                  
-0001c0 9508      	ret
+0001d0 9508      	ret
                  
                  
                  displayYesAlarm:
-0001c1 e087      	ldi temp, 0b00000111
-0001c2 bb82      	out PORTD, temp
+0001d1 e087      	ldi temp, 0b00000111
+0001d2 bb82      	out PORTD, temp
                  displayNoAlarm:
-0001c3 e086      	ldi temp, 0b00000110
-0001c4 bb82      	out PORTD, temp
+0001d3 e086      	ldi temp, 0b00000110
+0001d4 bb82      	out PORTD, temp
                  displayNoPointer:
-0001c5 e080      	ldi temp, 0b00000000
-0001c6 bb82      	out PORTD, temp
+0001d5 e080      	ldi temp, 0b00000000
+0001d6 bb82      	out PORTD, temp
                  displayBuzzer:
-0001c7 e08f      	ldi temp, 0b00001111
-0001c8 bb82      	out PORTD, temp
+0001d7 e08f      	ldi temp, 0b00001111
+0001d8 bb82      	out PORTD, temp
                  displayNoPointerAlarm:
-0001c9 e081      	ldi temp, 0b00000001
-0001ca bb82      	out PORTD, temp
+0001d9 e081      	ldi temp, 0b00000001
+0001da bb82      	out PORTD, temp
                  
-0001cb 9508      	ret
-                 
-                 splitByte:
-0001cc 308a      	cpi temp, 10
-0001cd f404      	brge start_split
-                 
-                 	start_split:
-0001ce 508a      		subi temp, 10
-0001cf 9593      		inc temp2
-0001d0 940c 01cc 		jmp splitByte
-                 	
-0001d2 9508      	ret
-                 
-                 displayHour:
-0001d3 2f80      	mov temp, hour
-0001d4 cff7      	rjmp splitByte
-                 
-0001d5 9508      	ret
-                 
-                 displayMinute:
-0001d6 2f81      	mov temp, minute
-0001d7 cff4      	rjmp splitByte
-                 	
-0001d8 9508      	ret
-                 
-                 displaySecond:
-0001d9 2f82      	mov temp, second
-0001da cff1      	rjmp splitByte
-                 	
 0001db 9508      	ret
                  
-                 displayHourAlarm:
-0001dc 2f83      	mov temp, hourAlarm
-0001dd cfee      	rjmp splitByte
+                 splitByte:
+0001dc 308a      	cpi temp, 10
+0001dd f404      	brge start_split
                  
-0001de 9508      	ret
+                 	start_split:
+0001de 508a      		subi temp, 10
+0001df 9593      		inc temp2
+0001e0 940c 01dc 		jmp splitByte
+                 	
+0001e2 9508      	ret
+                 
+                 displayHour:
+0001e3 2f80      	mov temp, hour
+0001e4 cff7      	rjmp splitByte
+                 
+0001e5 9508      	ret
+                 
+                 displayMinute:
+0001e6 2f81      	mov temp, minute
+0001e7 cff4      	rjmp splitByte
+                 	
+0001e8 9508      	ret
+                 
+                 displaySecond:
+0001e9 2f82      	mov temp, second
+0001ea cff1      	rjmp splitByte
+                 	
+0001eb 9508      	ret
+                 
+                 displayHourAlarm:
+0001ec 2f83      	mov temp, hourAlarm
+0001ed cfee      	rjmp splitByte
+                 
+0001ee 9508      	ret
                  
                  displayMinuteAlarm:
-0001df 2f84      	mov temp, minuteAlarm
-0001e0 cfeb      	rjmp splitByte
+0001ef 2f84      	mov temp, minuteAlarm
+0001f0 cfeb      	rjmp splitByte
                  	
-0001e1 9508      	ret
+0001f1 9508      	ret
                  
 
 
@@ -2016,26 +2039,26 @@ counted separately from r26..r31 here.
 "ATmega32" register use summary:
 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 r5 :   0 r6 :   0 r7 :   0 
 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   2 r13:   0 r14:   0 r15:   0 
-r16:  14 r17:  14 r18:  25 r19:  11 r20:  12 r21:  14 r22:  11 r23:   6 
-r24:  78 r25:   1 r26:   0 r27:   0 r28:   0 r29:   0 r30:   0 r31:   0 
+r16:  14 r17:  14 r18:  25 r19:  11 r20:  12 r21:  14 r22:  13 r23:   8 
+r24:  82 r25:   1 r26:   0 r27:   0 r28:   0 r29:   0 r30:   0 r31:   0 
 x  :   0 y  :   0 z  :   0 
 Registers used: 11 out of 35 (31.4%)
 
 "ATmega32" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :  39 brge  :   1 brhc  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :  41 brge  :   1 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :   9 brpl  :   0 brsh  :  18 brtc  :   0 brts  :   0 brvc  :   0 
+brne  :  10 brpl  :   0 brsh  :  18 brtc  :   0 brts  :   0 brvc  :   0 
 brvs  :   0 bset  :   0 bst   :   0 call  :  23 cbi   :   0 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   3 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :  15 cp    :   2 cpc   :   0 
-cpi   :  55 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :  22 jmp   :   3 
-ld    :   0 ldd   :   0 ldi   :  44 lds   :   0 lpm   :   0 lsl   :   0 
+cpi   :  58 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :  24 jmp   :   3 
+ld    :   0 ldd   :   0 ldi   :  47 lds   :   0 lpm   :   0 lsl   :   0 
 lsr   :   0 mov   :   5 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  31 pop   :   0 
-push  :   0 rcall :  70 ret   :  87 reti  :   1 rjmp  :  10 rol   :   0 
+push  :   0 rcall :  71 ret   :  91 reti  :   1 rjmp  :  10 rol   :   0 
 ror   :   0 sbc   :   0 sbci  :   0 sbi   :   0 sbic  :   0 sbis  :   0 
 sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   2 ses   :   0 set   :   0 sev   :   0 
@@ -2046,7 +2069,7 @@ Instructions used: 22 out of 113 (19.5%)
 "ATmega32" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0003c4    938      0    938   32768   2.9%
+[.cseg] 0x000000 0x0003e4    970      0    970   32768   3.0%
 [.dseg] 0x000060 0x000060      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
