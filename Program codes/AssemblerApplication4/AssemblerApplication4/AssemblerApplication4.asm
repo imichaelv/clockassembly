@@ -853,7 +853,7 @@ setAlarmHour:
 	rcall setAlarmHour1
 	rcall displayZero2					;
 	rcall displayNull2					;
-	rcall displayYesAlarm				;
+	rcall displaySetAlarm				;
 
 	call checkIncEditLevel				;
 	cpi	sw0Counter,1					;
@@ -899,8 +899,8 @@ setAlarmHour:
 setAlarmMinute:								;
 	rcall displayHourAlarm					;
 	rcall setMinuteAlarm1
-	rcall displayZero3
-	rcall displayYesAlarm
+	rcall displayNull2
+	rcall displaySetAlarm
 	rcall checkIncEditLevel
 
 	cpi	sw0Counter,1					;
@@ -914,6 +914,7 @@ setAlarmMinute:								;
 		cpi minuteAlarm,0x00					;
 		breq displayZeroMinuteAlarm2inv					;
 		rcall displayMinuteAlarm				;
+		ret
 
 	incMinuteAlarm2:
 		rcall incMinuteAlarm
@@ -1126,6 +1127,10 @@ displayNumber:
 
 displayYesAlarm:
 	ldi temp2, 0b00000111
+	rcall SEND_BYTE
+	ret
+displaySetAlarm:
+	ldi temp2, 0b00000101
 	rcall SEND_BYTE
 	ret
 displayNoAlarm:
