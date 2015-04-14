@@ -79,9 +79,8 @@
 	out UCSRB, temp
 
 	; init port
-	ser temp ; tmp = oxff
-	out DDRB, temp ; Port B is output port
-	out PORTB, temp ; LEDs uit	
+	clr temp ; tmp = oxff
+	out DDRA, temp ; Port B is output port
 					
 										;
 	;******initiaize stack pointer******;	=============================
@@ -125,7 +124,7 @@
 ;=======================================;
 ;#######################################;
 										;
-loop:									;
+loop:							;
 	rjmp loop							;
 										;
 ;=======================================;
@@ -133,9 +132,33 @@ loop:									;
 ;=======================================;
 
 
-
-
-
+/*TEST:
+	cpi temp2, 0x00
+	breq CLEAR_SCREEN
+	brne SET_SCREEN
+CLEAR_SCREEN:
+	ldi temp, 0x81
+	out UDR, temp
+	rcall SEND_BYTE
+	ldi temp2, 0x55
+	ret
+SET_SCREEN:
+	ldi temp, 0x77
+	rcall SEND_BYTE
+	rcall SEND_BYTE
+	rcall SEND_BYTE
+	rcall SEND_BYTE
+	rcall SEND_BYTE
+	rcall SEND_BYTE
+	ldi temp, 0x07
+	rcall SEND_BYTE
+	ldi temp2, 0x00
+	ret */
+SEND_BYTE:
+	sbis UCSRA, UDRE
+	rjmp SEND_BYTE
+	out UDR, temp
+	ret
 ;#######################################;
 ;=======================================;
 ;-------------CLOCK_CYCLE---------------;
@@ -160,10 +183,9 @@ incSeconda:
 ;--------------END LABEL----------------;
 ;=======================================;
 
-
-
 swcheck:
-	ldi temp, PINB
+	in temp, PINA
+	com temp
 	cpi temp,0x00
 	brne swpouched
 	ldi sw0Counter,0
@@ -171,10 +193,10 @@ swcheck:
 	ret
 
 	swpouched: 
-		cpi temp,0x01
-		breq sw0pouched
-		cpi temp,0x02
-		breq sw1pouched
+		sbrc temp,PA0
+		rjmp sw0pouched
+		sbrc temp,PA1
+		rjmp sw1pouched
 		ret
 		
 		sw0pouched:
@@ -184,6 +206,8 @@ swcheck:
 		sw1pouched:
 		inc sw1Counter
 		ret
+
+
 
 
 ;#######################################;
@@ -212,7 +236,7 @@ checkEditLevel:							;	=============================
 	cpi editLevel,8
 	breq playYesAlarma
 	cpi editLevel,9
-	breq playNoAlarmAgaina
+	brsh playNoAlarmAgaina
 	ret									;	=============================
 										;
 ;=======================================;
@@ -264,13 +288,10 @@ playNoAlarmAgaina:
 ;///////////////////////////////////////;
 checkIncEditLevel:						;
 	cpi sw1Counter,6					;
-	brsh incEditLevel					;
-	cpi sw1Counter,0x00					;
-	breq incSW1Counter					;
-	brne resetSW1Counter				;
-	cpi sw0Counter,2					;
-	brsh incSW0Counter					;
-	breq resetSW0Counter				;
+	breq incEditLevel					;
+	;cpi sw0Counter,2					;
+	;brsh incSW0Counter					;
+	;clr sw0Counter						;XXXX
 	ret									;
 ;=======================================;
 ;--------------END LABEL----------------;
@@ -646,10 +667,10 @@ setHour:
 	rcall displayZero2					;
 	rcall displayNoAlarm				;
 
-	call checkIncEditLevel				;
-	cpi	sw0Counter,1					;
+	rcall checkIncEditLevel				;
+	cpi	sw0Counter,2					;xxxx
 	brsh incHour2						;
-	rcall resetSW0Counter				;
+	;rcall resetSW0Counter				;
 	ret									;
 	 incHour2:
 		rcall incHour
@@ -1023,72 +1044,72 @@ showAlarm:								;
 
 displayNull:
 	ldi temp, 0x00
-	out PORTD, temp
+	rcall SEND_BYTE
 	ret
 displayZero:
 	ldi temp, 0x77
-	out PORTD, temp
+	rcall SEND_BYTE
 	ret
 displayOne:
 	ldi temp, 0x24
-	out PORTD, temp
+	rcall SEND_BYTE
 	ret
 displayTwo:
 	ldi temp, 0x5D
-	out PORTD, temp
+	rcall SEND_BYTE
 	ret
 displayThree:
 	ldi temp, 0x6D
-	out PORTD, temp
+	rcall SEND_BYTE
 	ret
 displayFour:
 	ldi temp, 0x2E
-	out PORTD, temp
+	rcall SEND_BYTE
 	ret
 displayFive:
 	ldi temp, 0x6B
-	out PORTD, temp
+	rcall SEND_BYTE
 	ret
 displaySix:
 	ldi temp, 0x7B
-	out PORTD, temp
+	rcall SEND_BYTE
 	ret
 displaySeven:
 	ldi temp, 0x25
-	out PORTD, temp
+	rcall SEND_BYTE
 	ret
 displayEight:
 	ldi temp, 0x7F
-	out PORTD, temp
+	rcall SEND_BYTE
 	ret
 displayNine:
 	ldi temp, 0x6F
-	out PORTD, temp
+	rcall SEND_BYTE
 	ret
 
 displayNumber:
-	cpi temp, 0x5D
+	cpi temp, 0x02
 	breq displayOne
 
-	cpi temp, 0x6D
+	cpi temp, 0x03
 	breq displayTwo
 
-	cpi temp, 0x2E
+	cpi temp, 0x04
 	breq displayThree
 
-	cpi temp, 0x6B
+	cpi temp, 0x05
 	breq displayFour
 
-	cpi temp, 0x7B
+	cpi temp, 0x06
 	breq displayFive
 
-	cpi temp, 0x25
+	cpi temp, 0x07
 	breq displaySix
 
-	cpi temp, 0x7F
+	cpi temp, 0x08
 	breq displaySeven
 
-	cpi temp, 0x6F
+	cpi temp, 0x09
 	breq displayEight
 
 	cpi temp, 0x0A
@@ -1099,20 +1120,23 @@ displayNumber:
 
 displayYesAlarm:
 	ldi temp, 0b00000111
-	out PORTD, temp
+	rcall SEND_BYTE
+	ret
 displayNoAlarm:
 	ldi temp, 0b00000110
-	out PORTD, temp
+	rcall SEND_BYTE
+	ret
 displayNoPointer:
 	ldi temp, 0b00000000
-	out PORTD, temp
+	rcall SEND_BYTE
+	ret
 displayBuzzer:
 	ldi temp, 0b00001111
-	out PORTD, temp
+	rcall SEND_BYTE
+	ret
 displayNoPointerAlarm:
 	ldi temp, 0b00000001
-	out PORTD, temp
-
+	rcall SEND_BYTE
 	ret
 
 splitByte:
@@ -1155,4 +1179,3 @@ displayMinuteAlarm:
 	rjmp splitByte
 	
 	ret
-
