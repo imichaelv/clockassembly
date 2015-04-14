@@ -157,7 +157,7 @@ SET_SCREEN:
 SEND_BYTE:
 	sbis UCSRA, UDRE
 	rjmp SEND_BYTE
-	out UDR, temp
+	out UDR, temp2
 	ret
 ;#######################################;
 ;=======================================;
@@ -428,7 +428,6 @@ incSecondTens:
 	inc second
 	inc second
 	inc second
-	inc second
 
 	cpi second,61
 	brsh setZeroSecond 
@@ -480,9 +479,11 @@ incSecond:
 incMinute:
 	inc minute
 	cpi minute,61
-	brsh incHourNorm 
+	brsh incHourSetting 
 	ret									;
-										;
+	
+	incHourSetting:
+		ldi minute,1									;
 ;=======================================;
 ;--------------END LABEL----------------;
 ;=======================================;
@@ -662,7 +663,7 @@ displayZero2:
 ;#######################################;
 										;
 setHour:
-	ldi hour,2		;xxxx
+	;ldi hour,2		;xxxx
 	rcall setHour1
 	rcall displayZero2					;
 	rcall displayZero2					;
@@ -719,7 +720,7 @@ setMinute:								;
 
 	cpi	sw0Counter,1					;
 	brsh incMinute2						;
-	rcall resetSW0Counter				;
+	;rcall resetSW0Counter				;
 	ret									;
 
 	setMinute1:
@@ -728,6 +729,7 @@ setMinute:								;
 		cpi minute,0x00					;
 		breq displayZeroMinute2inv		;
 		rcall displayMinute				;
+		ret
 
 	incMinute2:
 		rcall incMinute
@@ -735,7 +737,7 @@ setMinute:								;
 	
 	displayNullMinute2inv:
 		com minute
-		call displayZero2
+		call displayNull2
 		ret
 	displayZeroMinute2inv:
 		com minute
@@ -765,7 +767,7 @@ setSecond:								;
 	rcall checkIncEditLevel
 	cpi	sw0Counter,1					;
 	brsh incSecondTens2					;
-	rcall resetSW0Counter				;
+	;rcall resetSW0Counter				;
 	ret									;
 
 	setSecond1:
@@ -783,7 +785,7 @@ setSecond:								;
 
 		displayNullSecond2inv:
 		com second
-		call displayZero2
+		call displayNull2
 		ret
 	displayZeroSecond2inv:
 		com second
@@ -856,7 +858,7 @@ setAlarmHour:
 	call checkIncEditLevel				;
 	cpi	sw0Counter,1					;
 	brsh incHourAlarm2						;
-	rcall resetSW0Counter				;
+	;rcall resetSW0Counter				;
 	ret									;
 	 incHourAlarm2:
 		rcall incHourAlarm
@@ -873,7 +875,7 @@ setAlarmHour:
 
 	displayNullHourAlarm2inv:
 		com hourAlarm
-		call displayZero2
+		call displayNull2
 		ret
 	displayZeroHourAlarm2inv:
 		com hourAlarm
@@ -903,7 +905,7 @@ setAlarmMinute:								;
 
 	cpi	sw0Counter,1					;
 	brsh incMinuteAlarm2						;
-	rcall resetSW0Counter				;
+	;rcall resetSW0Counter				;
 	ret									;
 
 	setMinuteAlarm1:
@@ -919,7 +921,7 @@ setAlarmMinute:								;
 	
 	displayNullMinuteAlarm2inv:
 		com minuteAlarm
-		call displayZero2
+		call displayNull2
 		ret
 	displayZeroMinuteAlarm2inv:
 		com minuteAlarm
@@ -1044,108 +1046,109 @@ showAlarm:								;
 
 
 displayNull:
-	ldi temp, 0x00
+	ldi temp2, 0x00
 	rcall SEND_BYTE
 	ret
 displayZero:
-	ldi temp, 0x77
+	ldi temp2, 0x77
 	rcall SEND_BYTE
 	ret
 displayOne:
-	ldi temp, 0x24
+	ldi temp2, 0x24
 	rcall SEND_BYTE
 	ret
 displayTwo:
-	ldi temp, 0x5D
+	ldi temp2, 0x5D
 	rcall SEND_BYTE
 	ret
 displayThree:
-	ldi temp, 0x6D
+	ldi temp2, 0x6D
 	rcall SEND_BYTE
 	ret
 displayFour:
-	ldi temp, 0x2E
+	ldi temp2, 0x2E
 	rcall SEND_BYTE
 	ret
 displayFive:
-	ldi temp, 0x6B
+	ldi temp2, 0x6B
 	rcall SEND_BYTE
 	ret
 displaySix:
-	ldi temp, 0x7B
+	ldi temp2, 0x7B
 	rcall SEND_BYTE
 	ret
 displaySeven:
-	ldi temp, 0x25
+	ldi temp2, 0x25
 	rcall SEND_BYTE
 	ret
 displayEight:
-	ldi temp, 0x7F
+	ldi temp2, 0x7F
 	rcall SEND_BYTE
 	ret
 displayNine:
-	ldi temp, 0x6F
+	ldi temp2, 0x6F
 	rcall SEND_BYTE
 	ret
 
 displayNumber:
-	cpi temp, 0x01
+	cpi temp2, 0x00
 	breq displayZero
 	
-	cpi temp, 0x02
+	cpi temp2, 0x01
 	breq displayOne
 
-	cpi temp, 0x03
+	cpi temp2, 0x02
 	breq displayTwo
 
-	cpi temp, 0x04
+	cpi temp2, 0x03
 	breq displayThree
 
-	cpi temp, 0x05
+	cpi temp2, 0x04
 	breq displayFour
 
-	cpi temp, 0x06
+	cpi temp2, 0x05
 	breq displayFive
 
-	cpi temp, 0x07
+	cpi temp2, 0x06
 	breq displaySix
 
-	cpi temp, 0x08
+	cpi temp2, 0x07
 	breq displaySeven
 
-	cpi temp, 0x09
+	cpi temp2, 0x08
 	breq displayEight
 
-	cpi temp, 0x0A
+	cpi temp2, 0x09
 	breq displayNine
 
 	ret
 
 
 displayYesAlarm:
-	ldi temp, 0b00000111
+	ldi temp2, 0b00000111
 	rcall SEND_BYTE
 	ret
 displayNoAlarm:
-	ldi temp, 0b00000110
+	ldi temp2, 0b00000110
 	rcall SEND_BYTE
 	ret
 displayNoPointer:
-	ldi temp, 0b00000000
+	ldi temp2, 0b00000000
 	rcall SEND_BYTE
 	ret
 displayBuzzer:
-	ldi temp, 0b00001111
+	ldi temp2, 0b00001111
 	rcall SEND_BYTE
 	ret
 displayNoPointerAlarm:
-	ldi temp, 0b00000001
+	ldi temp2, 0b00000001
 	rcall SEND_BYTE
 	ret
 
 splitByte:    ;xxxxx
 	clr temp2
-	jmp splitByte2
+	dec temp
+	rjmp splitByte2
 
 	splitByte2:
 	cpi temp, 10
@@ -1157,21 +1160,22 @@ splitByte:    ;xxxxx
 		brsh start_split
 		brlo sendtens
 
-	start_split:
-		subi temp, 10
-		inc temp2
-		jmp splitByte2
+		start_split:
+			subi temp, 10
+			inc temp2
+			jmp splitByteYes
 	
 	ret
 
 	splitByteNo:
 		rcall displayZero
+		mov temp2, temp
 		rcall displayNumber
 		ret
 
 	sendtens:
 		rcall displayNumber
-		mov temp, temp2
+		mov temp2, temp
 		rcall displayNumber
 		ret
 		
