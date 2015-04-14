@@ -287,8 +287,8 @@ playNoAlarmAgaina:
 ;=======================================;
 ;///////////////////////////////////////;
 checkIncEditLevel:						;
-	cpi sw1Counter,6					;
-	breq incEditLevel					;
+	cpi sw1Counter,3					;
+	brsh incEditLevel					;
 	;cpi sw0Counter,2					;
 	;brsh incSW0Counter					;
 	;clr sw0Counter						;XXXX
@@ -533,7 +533,7 @@ incHourAlarmNorm:
 ;***************************************;
 incHour:
 	inc hour
-	cpi second,25
+	cpi hour,25
 	brsh incDayNorm 
 	ret									;
 										;
@@ -615,9 +615,9 @@ incDayAlarmNorm:
 										;
 startup:								;
 	rcall startup1
-	rcall startup2
+	rcall startup2						;
 	rcall startup3
-	rcall displayNoAlarm
+	rcall displayNoAlarm				
 	com hour							;
 	com minute							;
 	com second							;
@@ -662,13 +662,14 @@ displayZero2:
 ;#######################################;
 										;
 setHour:
+	ldi hour,2		;xxxx
 	rcall setHour1
 	rcall displayZero2					;
 	rcall displayZero2					;
 	rcall displayNoAlarm				;
 
 	rcall checkIncEditLevel				;
-	cpi	sw0Counter,2					;xxxx
+	cpi	sw0Counter,1					;xxxx
 	brsh incHour2						;
 	;rcall resetSW0Counter				;
 	ret									;
@@ -687,7 +688,7 @@ setHour:
 
 	displayNullHour2inv:
 		com hour
-		call displayZero2
+		call displayNull2
 		ret
 	displayZeroHour2inv:
 		com hour
@@ -723,9 +724,9 @@ setMinute:								;
 
 	setMinute1:
 		cpi minute,0xff					;
-		breq displayNullMinute2inv				;
+		breq displayNullMinute2inv		;
 		cpi minute,0x00					;
-		breq displayZeroMinute2inv					;
+		breq displayZeroMinute2inv		;
 		rcall displayMinute				;
 
 	incMinute2:
@@ -1088,6 +1089,9 @@ displayNine:
 	ret
 
 displayNumber:
+	cpi temp, 0x01
+	breq displayZero
+	
 	cpi temp, 0x02
 	breq displayOne
 
@@ -1139,16 +1143,38 @@ displayNoPointerAlarm:
 	rcall SEND_BYTE
 	ret
 
-splitByte:
+splitByte:    ;xxxxx
+	clr temp2
+	jmp splitByte2
+
+	splitByte2:
 	cpi temp, 10
-	brge start_split
+	brsh splitByteYes
+	brlo splitByteNo
+
+	splitByteYes:
+		cpi temp,10
+		brsh start_split
+		brlo sendtens
 
 	start_split:
 		subi temp, 10
 		inc temp2
-		jmp splitByte
+		jmp splitByte2
 	
 	ret
+
+	splitByteNo:
+		rcall displayZero
+		rcall displayNumber
+		ret
+
+	sendtens:
+		rcall displayNumber
+		mov temp, temp2
+		rcall displayNumber
+		ret
+		
 
 displayHour:
 	mov temp, hour
