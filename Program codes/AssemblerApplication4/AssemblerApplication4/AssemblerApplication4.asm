@@ -7,22 +7,23 @@
 
  .include "m32def.inc"					;
  
- .def hour			= r16				; Set hour   Tens to register  1
- .def minute		= r17				; Set minute Tens to register  3
- .def second		= r18				; Set second Tens to register  5
+ .def hour			= r16				; Set hour   Tens to register  16
+ .def minute		= r17				; Set minute Tens to register  17
+ .def second		= r18				; Set second Tens to register  18
  
- .def hourAlarm		= r19				; Set hourAlarm   Tens to register  7
- .def minuteAlarm	= r20				; Set minuteAlarm Tens to register  9
+ .def hourAlarm		= r19				; Set hourAlarm   Tens to register  19
+ .def minuteAlarm	= r20				; Set minuteAlarm Tens to register  20
 
- .def editLevel		= r21				; Set editLevel   to register 11
- .def sw0Counter	= r22				; Set sw0Counter  to register 12
- .def sw1Counter	= r23				; Set sw1Counter  to register 13
+ .def editLevel		= r21				; Set editLevel   to register 21
+ .def sw0Counter	= r22				; Set sw0Counter  to register 22
+ .def sw1Counter	= r23				; Set sw1Counter  to register 23
 
 
 
- .def temp			= r24				; Set temp   to register 16
+ .def temp			= r24				; Set temp   to register 24
  .def temp2			= r25				; Set temp2  to register 25
- .def saveSR		= r12				; Set saveSR to register 17
+ .def saveSR		= r12				; Set saveSR to register 12
+ .def halfSecond	= r26				; Set HalfSecond to register 26
 
 
 
@@ -61,6 +62,7 @@
 	ldi sw0Counter,0x00
 	ldi sw1Counter,0x00
 	ldi temp,0x00
+	ldi halfSecond,0xff
 
 	
 	; set the baud rate, see datahseet p.167
@@ -167,6 +169,7 @@ SEND_BYTE:
 										;
 CLOCK_CYCLE:							;	=============================
 	in saveSR, SREG						;	= Checks on every clock		=
+	com halfSecond
 	rcall swcheck
 	rcall checkEditLevel				;	= * What Edit level its on	=
 	cpi editLevel,4						;	= * Check if the clock is	=
@@ -177,8 +180,13 @@ CLOCK_CYCLE2:										;	=	running.				=
 	reti								;	=============================
 
 incSeconda:
-	rcall incSecond
-	jmp CLOCK_CYCLE2										;
+	cpi halfSecond,0xff
+	breq incSecondB
+	rjmp CLOCK_CYCLE2
+
+	incSecondB:
+		rcall incSecond
+		jmp CLOCK_CYCLE2										;
 ;=======================================;
 ;--------------END LABEL----------------;
 ;=======================================;
@@ -272,7 +280,8 @@ playYesAlarma:
 	rcall playYesAlarm
 	ret
 playNoAlarmAgaina:
-	rcall playNoAlarmAgaina
+	rcall playNoAlarmAgain
+
 	ret
 
 
@@ -287,11 +296,8 @@ playNoAlarmAgaina:
 ;=======================================;
 ;///////////////////////////////////////;
 checkIncEditLevel:						;
-	cpi sw1Counter,3					;
-	brsh incEditLevel					;
-	;cpi sw0Counter,2					;
-	;brsh incSW0Counter					;
-	;clr sw0Counter						;XXXX
+	cpi sw1Counter,2					;
+	breq incEditLevel					;
 	ret									;
 ;=======================================;
 ;--------------END LABEL----------------;
@@ -306,7 +312,6 @@ checkIncEditLevel:						;
 ;///////////////////////////////////////;
 incEditLevel:							;
 	inc editLevel						;
-	clr sw1Counter						;
 	ret									;
 										;
 ;=======================================;
@@ -418,6 +423,8 @@ checkSame3:
 ;///////////////////////////////////////;
 ;***************************************;
 incSecondTens:
+	cpi second,0xff
+	breq setZeroSecond
 	inc second
 	inc second
 	inc second
@@ -477,13 +484,16 @@ incSecond:
 ;///////////////////////////////////////;
 ;***************************************;
 incMinute:
+	cpi minute,0xff
+	breq incHourSetting
 	inc minute
 	cpi minute,61
 	brsh incHourSetting 
 	ret									;
 	
 	incHourSetting:
-		ldi minute,1									;
+		ldi minute,1
+		ret									;
 ;=======================================;
 ;--------------END LABEL----------------;
 ;=======================================;
@@ -512,6 +522,8 @@ incMinuteNorm:
 ;///////////////////////////////////////;
 ;***************************************;
 incMinuteAlarm:
+	cpi minuteAlarm,0xff
+	breq incHourAlarmNorm
 	inc minuteAlarm
 	cpi minuteAlarm,61
 	brsh incHourAlarmNorm 
@@ -533,6 +545,8 @@ incHourAlarmNorm:
 ;///////////////////////////////////////;
 ;***************************************;
 incHour:
+	cpi hour,0xff
+	breq incDayNorm
 	inc hour
 	cpi hour,25
 	brsh incDayNorm 
@@ -566,8 +580,10 @@ incHourNorm:
 ;///////////////////////////////////////;
 ;***************************************;
 incHourAlarm:
+	cpi hourAlarm,0xff
+	breq incDayAlarmNorm
 	inc hourAlarm
-	cpi hour,25
+	cpi hourAlarm,25
 	brsh incDayAlarmNorm 
 	ret									;
 										;
@@ -663,16 +679,20 @@ displayZero2:
 ;#######################################;
 										;
 setHour:
-	;ldi hour,2		;xxxx
+	rcall checkIncEditLevel				;
+	rcall updateHour
 	rcall setHour1
+
 	rcall displayZero2					;
 	rcall displayZero2					;
 	rcall displayNoAlarm				;
-
-	rcall checkIncEditLevel				;
-	cpi	sw0Counter,1					;xxxx
+	ret
+	
+	updateHour:
+	cpi	sw0Counter,2					;xxxx
 	brsh incHour2						;
-	;rcall resetSW0Counter				;
+	cpi editLevel,2
+	breq checkNullHour
 	ret									;
 	 incHour2:
 		rcall incHour
@@ -683,9 +703,18 @@ setHour:
 		cpi hour,0xff					;
 		breq displayNullHour2inv		;
 		cpi hour,0x00					;
-		breq displayZeroHour2inv		;					
+		breq displayZeroHour2inv		;
+		cpi halfSecond,0x00
+		breq checkBlinkHour
+
 		rcall displayHour				;
 		ret
+
+		checkBlinkHour:
+			sbrc temp,PA0
+			rjmp displayHour
+			rcall displayNull2
+			ret
 
 	displayNullHour2inv:
 		com hour
@@ -696,6 +725,15 @@ setHour:
 		call displayZero2
 		ret
 
+		checkNullHour:
+			cpi hour,0x00
+			breq setHourNull
+			cpi hour,0xff
+			breq setHourNull
+			ret
+
+		setHourNull:
+			ldi hour,1
 	
 ;=======================================;
 ;--------------END LABEL----------------;
@@ -712,15 +750,19 @@ setHour:
 ;#######################################;
 										;
 setMinute:								;
+	rcall checkIncEditLevel
+	rcall updateMinute
 	rcall displayHour					;
 	rcall setMinute1
 	rcall displayZero2
 	rcall displayNoAlarm
-	rcall checkIncEditLevel
-
-	cpi	sw0Counter,1					;
+	ret
+	
+	updateMinute:
+	cpi	sw0Counter,2					;
 	brsh incMinute2						;
-	;rcall resetSW0Counter				;
+	cpi editLevel,3
+	breq checkNullMinute
 	ret									;
 
 	setMinute1:
@@ -728,8 +770,16 @@ setMinute:								;
 		breq displayNullMinute2inv		;
 		cpi minute,0x00					;
 		breq displayZeroMinute2inv		;
+		cpi halfSecond, 0xff
+		breq checkBlinkMinute
 		rcall displayMinute				;
 		ret
+
+		checkBlinkMinute:
+			sbrc temp,PA0
+			rjmp displayMinute
+			rcall displayNull2
+			ret
 
 	incMinute2:
 		rcall incMinute
@@ -743,6 +793,16 @@ setMinute:								;
 		com minute
 		call displayZero2
 		ret
+
+		checkNullMinute:
+			cpi minute,0x00
+			breq setMinuteNull
+			cpi minute,0xff
+			breq setMinuteNull
+			ret
+
+		setMinuteNull:
+			ldi Minute,1
 	
 ;=======================================;
 ;--------------END LABEL----------------;
@@ -759,15 +819,19 @@ setMinute:								;
 ;#######################################;
 										;
 setSecond:								;
+	rcall checkIncEditLevel
+	rcall updateSecond
 	rcall displayHour					;
 	rcall displayMinute
 	rcall setSecond1
 	rcall displayNoAlarm
+	ret
 
-	rcall checkIncEditLevel
-	cpi	sw0Counter,1					;
+	updateSecond:
+	cpi	sw0Counter,2					;
 	brsh incSecondTens2					;
-	;rcall resetSW0Counter				;
+	cpi editLevel,4
+	breq checkNullSecond
 	ret									;
 
 	setSecond1:
@@ -775,9 +839,16 @@ setSecond:								;
 		breq displayNullSecond2inv		;
 		cpi second,0x00						;
 		breq displayZeroSecond2inv			;
+		cpi halfSecond,0xff
+		breq checkBlinkSecond
 		rcall displaySecond					;
 		ret
 
+		checkBlinkSecond:
+			sbrc temp,PA0
+			rjmp displaySecond
+			rcall displayNull2
+			ret
 	
 	incSecondTens2:
 		rcall incSecondTens
@@ -791,6 +862,16 @@ setSecond:								;
 		com second
 		call displayZero2
 		ret
+
+		checkNullSecond:
+			cpi second,0x00
+			breq setSecondNull
+			cpi second,0xff
+			breq setSecondNull
+			ret
+
+		setSecondNull:
+			ldi second,1
 ;=======================================;
 ;--------------END LABEL----------------;
 ;=======================================;
@@ -809,7 +890,7 @@ setAlarmStartup:								;
 	rcall alarmSetup1
 	rcall alarmSetup2
 	rcall displayNull2
-	rcall displayYesAlarm
+	rcall displaySetAlarm
 	com hourAlarm							;
 	com minuteAlarm							;
 	rcall checkIncEditLevel
@@ -850,26 +931,38 @@ setAlarmStartup:								;
 ;#######################################;
 										;
 setAlarmHour:
+	rcall checkIncEditLevel
+	rcall updateAlarmHour
 	rcall setAlarmHour1
 	rcall displayZero2					;
 	rcall displayNull2					;
 	rcall displaySetAlarm				;
-
-	call checkIncEditLevel				;
-	cpi	sw0Counter,1					;
+	ret
+		
+	updateAlarmHour:			;
+	cpi	sw0Counter,2					;
 	brsh incHourAlarm2						;
-	;rcall resetSW0Counter				;
+	cpi editLevel,6
+	breq checkNullAlarmHour
 	ret									;
 	 incHourAlarm2:
 		rcall incHourAlarm
 		ret
+
+		checkBlinkAlarmHour:
+			sbrc temp,PA0
+			rjmp displayHourAlarm
+			rcall displayNull2
+			ret
 
 	setAlarmHour1:
 		
 		cpi hourAlarm,0xff					;
 		breq displayNullHourAlarm2inv		;
 		cpi hourAlarm,0x00					;
-		breq displayZeroHourAlarm2inv		;					
+		breq displayZeroHourAlarm2inv		;	
+		cpi halfSecond,0xff
+		breq checkBlinkAlarmHour				
 		rcall displayHourAlarm				;
 		ret
 
@@ -882,6 +975,15 @@ setAlarmHour:
 		call displayZero2
 		ret
 
+		checkNullAlarmHour:
+			cpi hourAlarm,0x00
+			breq setHourAlarmNull
+			cpi hourAlarm,0xff
+			breq setHourAlarmNull
+			ret
+
+		setHourAlarmNull:
+			ldi hourAlarm,1
 ;=======================================;
 ;--------------END LABEL----------------;
 ;=======================================;
@@ -897,15 +999,19 @@ setAlarmHour:
 ;#######################################;
 										;
 setAlarmMinute:								;
+	rcall checkIncEditLevel
+	rcall updateAlarmMinute
 	rcall displayHourAlarm					;
 	rcall setMinuteAlarm1
 	rcall displayNull2
 	rcall displaySetAlarm
-	rcall checkIncEditLevel
+	ret
 
+	updateAlarmMinute:
 	cpi	sw0Counter,1					;
 	brsh incMinuteAlarm2						;
-	;rcall resetSW0Counter				;
+	cpi editLevel,7
+	breq checkNullAlarmMinute				;
 	ret									;
 
 	setMinuteAlarm1:
@@ -913,8 +1019,16 @@ setAlarmMinute:								;
 		breq displayNullMinuteAlarm2inv				;
 		cpi minuteAlarm,0x00					;
 		breq displayZeroMinuteAlarm2inv					;
+		cpi halfSecond,0xff
+		breq checkBlinkAlarmMinute
 		rcall displayMinuteAlarm				;
 		ret
+
+		checkBlinkAlarmMinute:
+			sbrc temp,PA0
+			rjmp displayMinuteAlarm
+			rcall displayNull2
+			ret
 
 	incMinuteAlarm2:
 		rcall incMinuteAlarm
@@ -928,6 +1042,16 @@ setAlarmMinute:								;
 		com minuteAlarm
 		call displayZero2
 		ret
+
+		checkNullAlarmMinute:
+			cpi minuteAlarm,0x00
+			breq setminuteAlarmNull
+			cpi minuteAlarm,0xff
+			breq setminuteAlarmNull
+			ret
+
+		setminuteAlarmNull:
+			ldi minuteAlarm,1
 	
 ;=======================================;
 ;--------------END LABEL----------------;
@@ -945,11 +1069,20 @@ setAlarmMinute:								;
 ;#######################################;
 										;
 playNoAlarm:							;
-	rjmp checkIncEditLevel				;
+	rcall checkIncEditLevel				;
 	cpi	sw0Counter,1					;
-	brsh showAlarm						;
-	brne showTime						;
-	rjmp displayNoAlarm					;
+	brsh showAlarm2						;
+	brne showTime2						;
+
+	showAlarm2:
+		rcall showAlarm
+		rjmp playNoAlarm2
+
+	showTime2:
+		rcall showTime
+		rjmp playNoAlarm2
+	playNoAlarm2:
+	rcall displayNoAlarm				;
 	ret									;
 ;=======================================;
 ;--------------END LABEL----------------;
@@ -1001,6 +1134,7 @@ displayBuzzer2:
 ;#######################################;
 playNoAlarmAgain:
 	ldi editLevel,7
+	rcall playNoAlarm
 	ret
 ;=======================================;
 ;--------------END LABEL----------------;
@@ -1168,7 +1302,7 @@ splitByte:    ;xxxxx
 		start_split:
 			subi temp, 10
 			inc temp2
-			jmp splitByteYes
+			rjmp splitByteYes
 	
 	ret
 
